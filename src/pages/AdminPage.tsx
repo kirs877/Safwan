@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Edit, Trash2, Plus, DollarSign, Save, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, Edit, Trash2, Plus, Save, Eye, EyeOff } from 'lucide-react'
 import { MenuItem, Order } from '../types'
 import { supabase } from '../lib/supabase'
 
@@ -119,42 +119,57 @@ const AdminPage = () => {
   }
 
   const saveMenuItem = async (item: MenuItem) => {
+    if (!item.name || !item.price) {
+      alert('يرجى ملء جميع الحقول المطلوبة')
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('menu_items')
-        .upsert(item)
+        .upsert(item, { onConflict: 'id' })
       
-      if (!error) {
+      if (error) {
+        console.error('خطأ في حفظ العنصر:', error)
+        alert('حدث خطأ في حفظ العنصر: ' + error.message)
+      } else {
         alert('تم حفظ العنصر بنجاح!')
         setEditingItem(null)
-        loadMenuItems()
+        await loadMenuItems()
       }
     } catch (error) {
+      console.error('خطأ في حفظ العنصر:', error)
       alert('حدث خطأ في حفظ العنصر')
     }
   }
 
   const deleteMenuItem = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
-      try {
-        const { error } = await supabase
-          .from('menu_items')
-          .delete()
-          .eq('id', id)
-        
-        if (!error) {
-          alert('تم حذف العنصر بنجاح!')
-          loadMenuItems()
-        }
-      } catch (error) {
-        alert('حدث خطأ في حذف العنصر')
+    if (!confirm('هل أنت متأكد من حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .delete()
+        .eq('id', id)
+      
+      if (error) {
+        console.error('خطأ في حذف العنصر:', error)
+        alert('حدث خطأ في حذف العنصر: ' + error.message)
+      } else {
+        alert('تم حذف العنصر بنجاح!')
+        await loadMenuItems()
       }
+    } catch (error) {
+      console.error('خطأ في حذف العنصر:', error)
+      alert('حدث خطأ في حذف العنصر')
     }
   }
 
   const addMenuItem = async () => {
-    if (!newItem.name || !newItem.price) {
-      alert('يرجى ملء جميع الحقول المطلوبة')
+    if (!newItem.name?.trim() || !newItem.price || newItem.price <= 0) {
+      alert('يرجى ملء جميع الحقول المطلوبة بشكل صحيح')
       return
     }
 
@@ -163,13 +178,16 @@ const AdminPage = () => {
         .from('menu_items')
         .insert({
           id: Date.now().toString(),
-          name: newItem.name,
-          price: newItem.price,
-          category: newItem.category,
-          emoji: newItem.emoji
+          name: newItem.name.trim(),
+          price: Number(newItem.price),
+          category: newItem.category || 'hot_drinks',
+          emoji: newItem.emoji?.trim() || ''
         })
       
-      if (!error) {
+      if (error) {
+        console.error('خطأ في إضافة العنصر:', error)
+        alert('حدث خطأ في إضافة العنصر: ' + error.message)
+      } else {
         alert('تم إضافة العنصر بنجاح!')
         setNewItem({
           name: '',
@@ -178,9 +196,10 @@ const AdminPage = () => {
           emoji: ''
         })
         setShowAddForm(false)
-        loadMenuItems()
+        await loadMenuItems()
       }
     } catch (error) {
+      console.error('خطأ في إضافة العنصر:', error)
       alert('حدث خطأ في إضافة العنصر')
     }
   }

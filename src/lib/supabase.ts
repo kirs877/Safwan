@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-// معلومات مشروع Supabase - يرجى تحديثها بمعلومات مشروعك الصحيحة
-const supabaseUrl = 'https://olqptpoqnpmcznraitqv.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9scXB0cG9xbnBtY3pucmFpdHF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk5MzU0MzEsImV4cCI6MjAyNTUxMTQzMX0.placeholder'
+// معلومات مشروع Supabase - تقرأ من متغيرات البيئة أو القيم الافتراضية
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://olqptpoqnpmcznraitqv.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9scXB0cG9xbnBtY3pucmFpdHF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk5MzU0MzEsImV4cCI6MjAyNTUxMTQzMX0.placeholder'
 
 // إنشاء عميل Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
