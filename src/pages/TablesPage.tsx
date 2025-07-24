@@ -111,7 +111,7 @@ const TablesPage = () => {
     const total = currentOrder.reduce((sum, item) => sum + (item.item_price * item.quantity), 0)
     
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('orders')
         .insert({
           table_number: selectedTable,

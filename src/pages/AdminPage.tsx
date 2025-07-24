@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Edit, Trash2, Plus, DollarSign, Save, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, Edit, Trash2, Plus, Save, Eye, EyeOff } from 'lucide-react'
 import { MenuItem, Order } from '../types'
 import { supabase } from '../lib/supabase'
 
