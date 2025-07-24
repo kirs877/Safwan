@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    direction: rtl;
+  }
+  
+  body {
+    direction: rtl;
+    font-family: 'Amiri', serif;
+    text-align: right;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* تحسينات للنصوص العربية */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Amiri', serif;
+    font-weight: 700;
+  }
+  
+  input, textarea, select {
+    font-family: 'Amiri', serif;
+    text-align: right;
+  }
+  
+  /* إصلاح اتجاه النصوص الإنجليزية */
+  [dir="ltr"] {
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-coffee-600 hover:bg-coffee-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors duration-200;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+  }
+  
+  .table-item {
+    @apply bg-white border-2 border-coffee-200 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:border-coffee-400 hover:shadow-lg;
+  }
+  
+  .table-item.occupied {
+    @apply bg-coffee-100 border-coffee-400;
+  }
+}
