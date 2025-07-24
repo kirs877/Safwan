@@ -63,12 +63,25 @@ const TablesPage = () => {
         .from('orders')
         .select('*')
         .eq('status', 'pending')
+        .order('created_at', { ascending: false })
       
-      if (!error && data) {
-        setOrders(data)
+      if (error) {
+        console.error('خطأ في تحميل الطلبات:', error)
+      } else {
+        setOrders(data || [])
       }
     } catch (error) {
-      console.log('Could not load orders')
+      console.error('خطأ في تحميل الطلبات:', error)
+    }
+  }
+
+  // تحميل الطلب الحالي للطاولة المحددة
+  const loadCurrentTableOrder = (tableNumber: number) => {
+    const tableOrder = orders.find(order => order.table_number === tableNumber && order.status === 'pending')
+    if (tableOrder && tableOrder.items) {
+      setCurrentOrder(tableOrder.items)
+    } else {
+      setCurrentOrder([])
     }
   }
 
@@ -106,7 +119,10 @@ const TablesPage = () => {
   }
 
   const saveOrder = async () => {
-    if (!selectedTable || currentOrder.length === 0) return
+    if (!selectedTable || currentOrder.length === 0) {
+      alert('يرجى اختيار طاولة وإضافة منتجات للطلب')
+      return
+    }
 
     const total = currentOrder.reduce((sum, item) => sum + (item.item_price * item.quantity), 0)
     
@@ -120,18 +136,31 @@ const TablesPage = () => {
           status: 'pending'
         })
       
-      if (!error) {
+      if (error) {
+        console.error('خطأ في حفظ الطلب:', error)
+        alert('حدث خطأ في حفظ الطلب: ' + error.message)
+      } else {
         alert('تم حفظ الطلب بنجاح!')
         setCurrentOrder([])
-        loadOrders()
+        await loadOrders() // انتظار تحديث الطلبات
       }
     } catch (error) {
+      console.error('خطأ في حفظ الطلب:', error)
       alert('حدث خطأ في حفظ الطلب')
     }
   }
 
   const payOrder = async () => {
-    if (!selectedTable) return
+    if (!selectedTable) {
+      alert('يرجى اختيار طاولة')
+      return
+    }
+
+    const tableOrder = getTableOrder(selectedTable)
+    if (!tableOrder) {
+      alert('لا يوجد طلبات في هذه الطاولة')
+      return
+    }
 
     try {
       const { error } = await supabase
@@ -140,13 +169,17 @@ const TablesPage = () => {
         .eq('table_number', selectedTable)
         .eq('status', 'pending')
       
-      if (!error) {
+      if (error) {
+        console.error('خطأ في الدفع:', error)
+        alert('حدث خطأ في عملية الدفع: ' + error.message)
+      } else {
         alert('تم الدفع بنجاح! تم تصفير الطاولة.')
         setCurrentOrder([])
         setSelectedTable(null)
-        loadOrders()
+        await loadOrders() // انتظار تحديث الطلبات
       }
     } catch (error) {
+      console.error('خطأ في الدفع:', error)
       alert('حدث خطأ في عملية الدفع')
     }
   }
@@ -216,7 +249,10 @@ const TablesPage = () => {
                 return (
                   <button
                     key={tableNumber}
-                    onClick={() => setSelectedTable(tableNumber)}
+                    onClick={() => {
+                      setSelectedTable(tableNumber)
+                      loadCurrentTableOrder(tableNumber)
+                    }}
                     className={`
                       table-item h-16 flex items-center justify-center font-bold text-lg
                       ${isOccupied ? 'occupied' : ''}
@@ -238,11 +274,32 @@ const TablesPage = () => {
                   <h3 className="text-xl font-bold text-coffee-800 mb-4">
                     طاولة رقم {selectedTable}
                   </h3>
+
+                  {/* Saved Order Display */}
+                  {(() => {
+                    const tableOrder = getTableOrder(selectedTable)
+                    return tableOrder && (
+                      <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded">
+                        <h4 className="font-bold text-green-800 mb-3">طلب محفوظ:</h4>
+                        <div className="space-y-2">
+                          {tableOrder.items.map((item: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center text-sm">
+                              <span>{item.item_name} x{item.quantity}</span>
+                              <span className="font-bold">{formatPrice(item.item_price * item.quantity)}</span>
+                            </div>
+                          ))}
+                          <div className="border-t pt-2 font-bold text-green-800">
+                            المجموع: {formatPrice(tableOrder.total)}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
                   
                   {/* Current Order Display */}
                   {currentOrder.length > 0 && (
                     <div className="mb-6">
-                      <h4 className="font-bold mb-3">الطلب الحالي:</h4>
+                      <h4 className="font-bold mb-3">طلب جديد:</h4>
                       <div className="space-y-2">
                         {currentOrder.map(item => (
                           <div key={item.menu_item_id} className="flex justify-between items-center text-sm">
